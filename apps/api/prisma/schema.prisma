@@ -1,0 +1,78 @@
+// C2C Protocol API — Prisma schema（PostgreSQL）
+// 设计依据 doc/实施方案.md §7：User/Agent/Event/VectorSnapshot/Proof。
+// 幂等：Event.idempotencyKey 全局唯一（SDK eventId）；Proof.hash 全局唯一（keccak hex）。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  walletAddress String   @unique
+  agents        Agent[]
+  createdAt     DateTime @default(now())
+}
+
+model Agent {
+  id            String   @id @default(uuid())
+  ownerId       String // User.id（ownerAddress 归属）
+  owner         User     @relation(fields: [ownerId], references: [id])
+  // 链上 AgentIdentity tokenId（本地 hardhat 为小整数；fuji 亦为顺序 id）
+  chainAgentId  Int?     @unique
+  ownerAddress  String // Path1 约束：owner = 事件签名身份（SDK signer 同一地址）
+  name          String
+  metadataURI   String?
+  active        Boolean  @default(true)
+  // 最近一次 Score 上链对账信息（indexer 回写）
+  chainVerified Boolean  @default(false)
+  lastScoreTx   String?
+  createdAt     DateTime @default(now())
+  events        Event[]
+  snapshots     VectorSnapshot[]
+  proofs        Proof[]
+}
+
+model Event {
+  id             String   @id @default(uuid())
+  idempotencyKey String   @unique // SDK 事件 eventId（全局幂等）
+  agentId        String
+  agent          Agent    @relation(fields: [agentId], references: [id])
+  action         String // task.started | task.completed | task.failed | proof.submitted
+  taskId         String
+  payload        Json?
+  ts             BigInt // 信封时间戳（epoch 秒）
+  createdAt      DateTime @default(now())
+
+  @@index([agentId, ts])
+}
+
+model VectorSnapshot {
+  id             String   @id @default(uuid())
+  agentId        String
+  agent          Agent    @relation(fields: [agentId], references: [id])
+  execution      Int
+  reliability    Int
+  quality        Int
+  collaboration  Int
+  composite      Int
+  proofHash      String? // 链上 ReputationRegistry.proofHash
+  txHash         String? // submitScore 交易
+  updatedAt      DateTime @default(now())
+
+  @@index([agentId, updatedAt])
+}
+
+model Proof {
+  id          String   @id @default(uuid())
+  agentId     String
+  agent       Agent    @relation(fields: [agentId], references: [id])
+  hash        String   @unique // keccak256(proofJson) = 链上 proofHash
+  cid         String // Kubo CID 或 local:<hash>（Kubo 不可用降级）
+  payloadJson Json // canonical proof JSON 原文（/verify 可字节级重算比对）
+  createdAt   DateTime @default(now())
+}

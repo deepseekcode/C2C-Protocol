@@ -1,0 +1,22 @@
+# C2C Protocol 本地开发依赖编排
+# 启动：Docker Desktop 运行中 → `docker compose up -d` → `pnpm db:migrate`
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: c2c-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-c2c}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-c2c_dev_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-c2c}
+    ports:
+      - "5432:5432"
+    volumes:
+      - c2c_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-c2c} -d ${POSTGRES_DB:-c2c}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  c2c_pgdata:
