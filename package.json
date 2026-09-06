@@ -23,6 +23,8 @@
     "api:start": "pnpm --dir apps/api run start",
     "api:typecheck": "pnpm --dir apps/api run typecheck",
     "seed:e2e": "pnpm --dir apps/api run seed:e2e",
+    "demo:start": "pnpm --dir apps/api run demo:start",
+    "demo:once": "pnpm --dir apps/api run demo:once",
     "api:test:e2e": "pnpm --dir apps/api run test:e2e",
     "web:dev": "pnpm --dir apps/web run dev",
     "e2e": "bash apps/api/scripts/run-e2e.sh"

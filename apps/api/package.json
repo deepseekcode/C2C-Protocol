@@ -11,7 +11,9 @@
     "test:e2e": "tsx --test test/e2e/app.e2e.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "seed:e2e": "tsx scripts/seed-e2e.ts"
+    "seed:e2e": "tsx scripts/seed-e2e.ts",
+    "demo:start": "tsx scripts/demo-driver.ts",
+    "demo:once": "tsx scripts/demo-driver.ts --once"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
