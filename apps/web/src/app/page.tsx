@@ -1,4 +1,4 @@
-import Dashboard from "@/components/Dashboard";
+import LiveDashboard from "@/components/LiveDashboard";
 import { fetchAgents, fetchHealth, API_URL } from "@/lib/api";
 import type { AgentListItem } from "@/lib/api";
 
@@ -29,7 +29,7 @@ export default async function Home() {
           ⚠ 无法连接 api（{API_URL}）。请先启动后端：<code>pnpm api:start</code>
         </div>
       )}
-      <Dashboard agents={agents} health={health} />
+      <LiveDashboard initialAgents={agents} health={health} />
     </>
   );
 }

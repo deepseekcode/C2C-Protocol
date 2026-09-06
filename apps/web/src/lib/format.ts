@@ -3,6 +3,7 @@ export const LEVEL_STYLE: Record<string, { color: string; bg: string; border: st
   Bronze: { color: "#e0a37c", bg: "rgba(180,120,80,0.14)", border: "rgba(224,163,124,0.3)", label: "青铜" },
   Silver: { color: "#c3cede", bg: "rgba(160,175,200,0.14)", border: "rgba(195,206,222,0.3)", label: "白银" },
   Gold: { color: "#f5cd6e", bg: "rgba(245,170,60,0.14)", border: "rgba(245,205,110,0.32)", label: "黄金" },
+  Platinum: { color: "#9be8d8", bg: "rgba(56,189,248,0.12)", border: "rgba(125,211,252,0.35)", label: "铂金" },
   Diamond: { color: "#7dd3fc", bg: "rgba(56,189,248,0.14)", border: "rgba(125,211,252,0.32)", label: "钻石" },
 };
 
@@ -25,4 +26,14 @@ export function shortAddr(addr: string, n = 6): string {
 export function fmtScore(score?: number): string {
   if (score === undefined) return "—";
   return String(score);
+}
+
+/** 综合分 → 0–5 星（0–10000 域，对齐声誉引擎） */
+export function stars(score?: number): number {
+  if (score === undefined) return 0;
+  return Math.min(5, Math.max(0, Math.round((score / 10000) * 5)));
+}
+
+export function fmtStar(n: number): string {
+  return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
 }
