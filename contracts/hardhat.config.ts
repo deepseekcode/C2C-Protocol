@@ -29,10 +29,17 @@ const config: HardhatUserConfig = {
     version: "0.8.24",
     settings: {
       optimizer: { enabled: true, runs: 200 },
+      // OpenZeppelin 5.x 使用 mcopy（cancun 指令），hardhat 2.x 默认 paris 会编译失败。
+      evmVersion: "cancun",
     },
   },
   networks: {
     hardhat: {},
+    // 本地持久 RPC（hardhat node），供 apps/api 与 e2e 使用
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      chainId: 31337,
+    },
     // Avalanche Fuji Testnet (C-Chain, EVM, Chain ID 43113)
     fuji: {
       url: process.env.FUJI_RPC_URL || "https://api.avax-test.network/ext/bc/C/rpc",
