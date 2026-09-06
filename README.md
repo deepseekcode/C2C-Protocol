@@ -78,6 +78,10 @@ cp .env.example .env
 | `SNOWTRACE_API_KEY` | 可选，合约验证用 |
 | `CHECK_ADDRESS` | 可选，`pnpm sdk:balance` 免私钥查任意地址余额 |
 
+> `.env` 由各工程**基于文件位置显式加载**（不依赖当前工作目录），无论从仓库根还是子目录运行都读取同一份根目录 `.env`。
+
+> ⚠️ 占位私钥（`.env.example` 中的 `0x0000...`）会被自动识别并拦截：`deploy:fuji` 会给出友好提示而非底层曲线库报错。请填入真实私钥后再部署。
+
 ## 部署到 Fuji
 
 1. `cp .env.example .env`，填入你自己的 Fuji 测试私钥

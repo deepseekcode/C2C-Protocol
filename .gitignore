@@ -2,6 +2,9 @@
 node_modules/
 .pnpm-store/
 
+# root has no own deps; pnpm generates an empty lockfile when run at root
+/pnpm-lock.yaml
+
 # env / secrets
 .env
 .env.local
