@@ -112,6 +112,27 @@ test("e2e Path3: 声誉查询 chainVerified=true + score>0", async () => {
   assert.ok(rep.proofHash?.startsWith("0x"));
 });
 
+test("e2e Path3-verify: DB 原文重算与链上 proofHash 一致", async () => {
+  assert.ok(registeredAgentId);
+  const v = await req<{
+    agentId: number;
+    status: string;
+    recomputed: string | null;
+    onchain: string | null;
+    matched: boolean;
+  }>("GET", `/reputation/verify/${registeredAgentId}`);
+  assert.equal(v.status, "verified", `status=${v.status}`);
+  assert.equal(v.matched, true);
+  assert.ok(v.recomputed?.startsWith("0x"), `recomputed=${v.recomputed}`);
+  assert.equal(v.recomputed, v.onchain, "重算 hash 应等于链上 hash");
+});
+
+test("e2e Path3-verify: 未注册 agent → no-agent", async () => {
+  const v = await req<{ status: string; matched: boolean }>("GET", "/reputation/verify/999999999");
+  assert.equal(v.status, "no-agent");
+  assert.equal(v.matched, false);
+});
+
 test("e2e 边界: 未来时间戳事件被拒", async () => {
   await req(
     "POST",

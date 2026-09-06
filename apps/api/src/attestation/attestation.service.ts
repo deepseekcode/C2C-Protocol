@@ -64,46 +64,57 @@ export class AttestationService {
 
   /** EIP-712 签名并 submitScore 上链。nonce 由调用方（event mutex 内）读取后传入。 */
   async signAndSubmit(att: ScoreAttestationInput, nonce: bigint, deadline: bigint): Promise<SubmitResult> {
+    const pc = publicClient();
     const wallet = evaluatorWalletClient();
     const account = evaluatorAccount();
 
-    const attForSign = {
-      ...att,
-      nonce,
-      deadline,
-    };
+    // 显式取链上最新 pending 交易 nonce（避免 viem 新建 client 的 nonce 缓存与链失步 → nonce too low）
+    // 重试一次：nonce 竞争时重新读取再发
+    let lastErr: unknown;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const txNonce = await pc.getTransactionCount({ address: account.address, blockTag: "pending" });
 
-    const signature = await wallet.signTypedData({
-      domain: this.domain(),
-      types: AttestationService.types,
-      primaryType: "ScoreAttestation",
-      message: attForSign,
-    });
+      const signature = await wallet.signTypedData({
+        domain: this.domain(),
+        types: AttestationService.types,
+        primaryType: "ScoreAttestation",
+        message: { ...att, nonce, deadline },
+      });
 
-    const txHash = await wallet.writeContract({
-      address: this.registryAddress,
-      abi: reputationRegistryAbi,
-      functionName: "submitScore",
-      // 便捷方式：submitScore 的 ABI 是 (tuple, bytes)，viem 支持直接传对象
-      args: [
-        {
-          agentId: att.agentId,
-          execution: att.execution,
-          reliability: att.reliability,
-          quality: att.quality,
-          collaboration: att.collaboration,
-          tasksCompleted: att.tasksCompleted,
-          proofHash: att.proofHash,
-          nonce,
-          deadline,
-        },
-        signature,
-      ],
-      account: account.address,
-      chain: publicClient().chain,
-    });
-
-    return { txHash, nonce, deadline };
+      try {
+        const txHash = await wallet.writeContract({
+          address: this.registryAddress,
+          abi: reputationRegistryAbi,
+          functionName: "submitScore",
+          args: [
+            {
+              agentId: att.agentId,
+              execution: att.execution,
+              reliability: att.reliability,
+              quality: att.quality,
+              collaboration: att.collaboration,
+              tasksCompleted: att.tasksCompleted,
+              proofHash: att.proofHash,
+              nonce,
+              deadline,
+            },
+            signature,
+          ],
+          account,
+          nonce: txNonce, // 显式指定，防缓存失步
+        });
+        return { txHash, nonce, deadline };
+      } catch (err) {
+        lastErr = err;
+        // nonce 竞争：等待 200ms 后重试（下一轮重新取 nonce）
+        if (attempt === 0 && String(err).includes("nonce")) {
+          await new Promise((r) => setTimeout(r, 200));
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastErr;
   }
 
   /** 读取链上当前 vector（供 reputation/seed 比对） */

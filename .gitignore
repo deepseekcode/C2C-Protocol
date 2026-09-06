@@ -19,6 +19,9 @@ contracts/deployments/
 .deepseekcode/
 .workbuddy/
 
+# runtime data (local proof fallback, demo output)
+apps/api/data/
+
 # logs
 *.log
 npm-debug.log*
