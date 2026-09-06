@@ -14,6 +14,7 @@ export type C2CEventAction =
   | "task.started"
   | "task.completed"
   | "task.failed"
+  | "task.claimed"
   | "proof.submitted";
 
 /** L0 开放事件信封（POST /events，规范公开，任何语言可对接） */
@@ -176,6 +177,34 @@ export class C2CAgent {
       this.trace("info", "proof.submit", "ok", { taskId: input.taskId, proofCID: input.proofCID });
     },
   };
+
+  /**
+   * 领取市场任务（POST /tasks/:externalId/claim）。
+   * 说明：服务端以 agentPrivateKey（Agent owner）验签并校验链上声誉门槛后
+   * 调 TaskRegistry.assignTask 上链登记。仅 Node 侧 L2 适配器（持有私钥）可用；
+   * 浏览器/受限环境请由宿主侧脚本代为调用 API。
+   */
+  async claimTask(externalId: string, agentPrivateKey: string): Promise<unknown> {
+    const t0 = Date.now();
+    try {
+      const res = await this.request<unknown>(
+        "POST",
+        `/tasks/${encodeURIComponent(externalId)}/claim`,
+        { agentPrivateKey, chainAgentId: Number(this.opts.agentId) },
+      );
+      this.trace("info", "task.claim", "ok", { externalId, durationMs: Date.now() - t0 });
+      // 顺带上报 task.claimed 事件（不计分，仅记账；签名可选）
+      void this.track("task.claimed", externalId, { via: "sdk.claimTask" });
+      return res;
+    } catch (err) {
+      this.trace("error", "task.claim", "failed", {
+        externalId,
+        durationMs: Date.now() - t0,
+        errorMessage: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
+  }
 
   readonly reputation = {
     get: async (agentId: string): Promise<ReputationInfo> => {
