@@ -76,3 +76,28 @@ model Proof {
   payloadJson Json // canonical proof JSON 原文（/verify 可字节级重算比对）
   createdAt   DateTime @default(now())
 }
+
+// 任务市场登记（V1：链下状态机 + TaskRegistry 链上审计登记；不做支付/撮合）。
+// 状态机：OPEN → ASSIGNED → COMPLETED（发布者 CANCELLED 为旁路终态）。
+// 门槛 minScore 由服务端读取链上 ReputationRegistry.compositeScore 校验通过后
+// 才调 TaskRegistry.assignTask 登记领取。
+model Task {
+  id                 String    @id @default(uuid())
+  externalId         String    @unique // 发布者业务 ID（taskHash 输入之一，可重算）
+  title              String
+  description        String?
+  publisherAddr      String // 发布者 EVM 地址（小写）
+  minScore           Int       @default(0) // 声誉门槛 0–10000
+  status             String    @default("OPEN") // OPEN | ASSIGNED | COMPLETED | CANCELLED
+  // 链上登记交易
+  publishTx          String? // TaskRegistry.publishTask txHash
+  assignTx           String? // TaskRegistry.assignTask txHash
+  // 领取方（Agent）
+  assignedAgentId    String? // Agent.id（链下 FK）
+  assignedChainAgent Int? // AgentIdentity tokenId
+  completedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([status])
+}
