@@ -116,3 +116,88 @@ export const reputationPassportAbi = [
     outputs: [{ name: "", type: "bool" }],
   },
 ] as const;
+
+/** TaskRegistry — 任务登记（V1：链下状态机 + 链上审计登记）。与 contracts/contracts/TaskRegistry.sol 同步。 */
+export const taskRegistryAbi = [
+  {
+    type: "function",
+    name: "publishTask",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "taskHash", type: "bytes32" },
+      { name: "minScore", type: "uint256" },
+      { name: "deadline", type: "uint64" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "assignTask",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "taskHash", type: "bytes32" },
+      { name: "agentId", type: "uint256" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "completeTask",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "taskHash", type: "bytes32" }],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "getTask",
+    stateMutability: "view",
+    inputs: [{ name: "taskHash", type: "bytes32" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        components: [
+          { name: "taskHash", type: "bytes32" },
+          { name: "publisher", type: "address" },
+          { name: "minScore", type: "uint256" },
+          { name: "agentId", type: "uint256" },
+          { name: "assigned", type: "bool" },
+          { name: "completed", type: "bool" },
+          { name: "createdAt", type: "uint64" },
+          { name: "assignedAt", type: "uint64" },
+          { name: "completedAt", type: "uint64" },
+        ],
+      },
+    ],
+  },
+  {
+    type: "function",
+    name: "totalTasks",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "event",
+    name: "TaskPublished",
+    inputs: [
+      { name: "taskHash", type: "bytes32", indexed: true },
+      { name: "publisher", type: "address", indexed: true },
+      { name: "minScore", type: "uint256", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "TaskAssigned",
+    inputs: [
+      { name: "taskHash", type: "bytes32", indexed: true },
+      { name: "agentId", type: "uint256", indexed: true },
+      { name: "assigner", type: "address", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "TaskCompleted",
+    inputs: [{ name: "taskHash", type: "bytes32", indexed: true }],
+  },
+] as const;

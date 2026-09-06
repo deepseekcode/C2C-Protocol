@@ -37,7 +37,14 @@ export function operatorWalletClient() {
 }
 
 /** 部署地址解析（缺文件时抛清晰错误）；REPO_ROOT 显式传入规避 pnpm 软链路径问题 */
-export function contractAddress(name: "AgentIdentity" | "ReputationRegistry" | "ReputationPassport" | "AttestationRegistry"): Address {
+export function contractAddress(
+  name:
+    | "AgentIdentity"
+    | "ReputationRegistry"
+    | "ReputationPassport"
+    | "AttestationRegistry"
+    | "TaskRegistry",
+): Address {
   try {
     const d = loadDeployments(REPO_ROOT, NETWORK);
     const c = d.contracts[name];

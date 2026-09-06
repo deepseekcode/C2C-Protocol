@@ -100,13 +100,51 @@ export class EventService {
       },
     });
 
+    // 任务状态对账（幂等）：task.completed 事件若对应已领取任务 → 置 COMPLETED。
+    // 仅当 Task 存在且处于 ASSIGNED；不在此处上链 completeTask（发布者确认在 /tasks/complete 做），
+    // 也不影响下方评分逻辑。
+    if (env.action === "task.completed") {
+      await this.reconcileTaskCompleted(env, agent);
+    }
+
     // 仅 completed/failed 触发评分
     if (env.action === "task.started" || env.action === "proof.submitted") {
       this.logger.log(`event recorded action=${env.action} eventId=${env.eventId} agent=${env.agentId}`);
       return { status: "processed" };
     }
 
+    // task.claimed 只记账（不计分、不对账状态——领取状态由 /tasks/claim 驱动）
+    if (env.action === "task.claimed") {
+      this.logger.log(`event recorded action=${env.action} eventId=${env.eventId} agent=${env.agentId} (no-op for scoring)`);
+      return { status: "processed" };
+    }
+
     return this.scoreFromEvent(env, agent);
+  }
+
+  /** task.completed 对账：若 SDK taskId == Task.externalId 且已 ASSIGNED → COMPLETED（幂等，无链上副作用） */
+  private async reconcileTaskCompleted(
+    env: C2CEventEnvelope,
+    agent: { id: string; chainAgentId: number | null },
+  ): Promise<void> {
+    try {
+      const task = await this.prisma.task.findUnique({ where: { externalId: env.taskId } });
+      if (!task) return; // 非市场任务（普通 SDK 上报），忽略
+      if (task.status !== "ASSIGNED") return; // 幂等：已 COMPLETED/CANCELLED 不重复写
+      // 领取 agent 必须与上报事件的 agent 一致（防串号）
+      if (task.assignedAgentId !== agent.id) {
+        this.logger.warn(`task.completed agent mismatch externalId=${env.taskId} eventAgent=${agent.id} taskAgent=${task.assignedAgentId}`);
+        return;
+      }
+      await this.prisma.task.update({
+        where: { id: task.id },
+        data: { status: "COMPLETED", completedAt: new Date() },
+      });
+      this.logger.log(`task reconciled COMPLETED externalId=${env.taskId}`);
+    } catch (err) {
+      // 对账失败不阻断事件主流程（评分照常）
+      this.logger.warn(`reconcileTaskCompleted failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   private async scoreFromEvent(

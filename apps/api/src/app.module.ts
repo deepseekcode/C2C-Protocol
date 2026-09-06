@@ -7,6 +7,7 @@ import { ReputationModule } from "./reputation/reputation.module.js";
 import { ProofModule } from "./proof/proof.module.js";
 import { AttestationModule } from "./attestation/attestation.module.js";
 import { IndexerModule } from "./indexer/indexer.module.js";
+import { TaskModule } from "./task/task.module.js";
 import { HealthController } from "./health/health.controller.js";
 
 @Module({
@@ -19,6 +20,7 @@ import { HealthController } from "./health/health.controller.js";
     EventModule,
     ReputationModule,
     IndexerModule,
+    TaskModule,
   ],
   controllers: [HealthController],
 })
