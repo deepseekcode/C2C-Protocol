@@ -1,5 +1,17 @@
-nextjs
-out
-dist
+# next.js
+.next/
+out/
+
+# 构建产物
+dist/
+*.tsbuildinfo
+
+# 依赖
+node_modules/
+
+# 日志
 *.log
+
+# 环境变量
 .env*.local
+.env
