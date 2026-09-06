@@ -17,6 +17,7 @@ contracts/deployments/
 
 # tooling
 .deepseekcode/
+.workbuddy/
 
 # logs
 *.log
