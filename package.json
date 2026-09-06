@@ -1,0 +1,17 @@
+{
+  "name": "avalanche-builder-env",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Avalanche Builder Hub 起步环境：Hardhat + @avalanche-sdk/client 连接 Fuji Testnet",
+  "scripts": {
+    "install:all": "pnpm --dir contracts install && pnpm --dir scripts install",
+    "compile": "pnpm --dir contracts compile",
+    "test": "pnpm --dir contracts test",
+    "deploy:fuji": "pnpm --dir contracts run deploy:fuji",
+    "sdk:info": "pnpm --dir scripts exec tsx src/info.ts",
+    "sdk:balance": "pnpm --dir scripts exec tsx src/balance.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

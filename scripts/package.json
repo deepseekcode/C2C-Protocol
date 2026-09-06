@@ -1,0 +1,21 @@
+{
+  "name": "@avalanche-env/scripts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "info": "tsx src/info.ts",
+    "balance": "tsx src/balance.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@avalanche-sdk/client": "^0.1.2",
+    "dotenv": "^17.4.2",
+    "tsx": "^4.23.13",
+    "viem": "^2.56.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "typescript": "^5.9.3"
+  }
+}
