@@ -23,6 +23,7 @@ const CONTRACT_NAMES = [
   "ReputationPassport",
   "ReputationRegistry",
   "AttestationRegistry",
+  "TaskRegistry",
 ] as const;
 
 // hardhat 固定助记词账户 #1（私钥 0x59c6...，与 apps/api .env EVALUATOR_PRIVATE_KEY 默认一致）

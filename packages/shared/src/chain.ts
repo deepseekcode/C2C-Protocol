@@ -29,6 +29,7 @@ export const CONTRACT_NAMES = [
   "ReputationPassport",
   "ReputationRegistry",
   "AttestationRegistry",
+  "TaskRegistry",
 ] as const;
 export type ContractName = (typeof CONTRACT_NAMES)[number];
 
