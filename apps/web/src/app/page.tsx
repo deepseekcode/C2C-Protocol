@@ -1,4 +1,5 @@
 import LiveDashboard from "@/components/LiveDashboard";
+import TaskMarket from "@/components/TaskMarket";
 import { fetchAgents, fetchHealth, API_URL } from "@/lib/api";
 import type { AgentListItem } from "@/lib/api";
 
@@ -30,6 +31,8 @@ export default async function Home() {
         </div>
       )}
       <LiveDashboard initialAgents={agents} health={health} />
+      {/* 任务市场：人发布任务 → Agent 按声誉门槛领取（V1 Demo，无支付/撮合） */}
+      <TaskMarket agents={agents} />
     </>
   );
 }

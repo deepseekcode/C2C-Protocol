@@ -31,6 +31,65 @@ export async function fetchAgents(): Promise<AgentListItem[]> {
   return (await res.json()) as AgentListItem[];
 }
 
+/* ---------- 任务市场（Task Registry） ---------- */
+
+export type TaskStatus = "OPEN" | "ASSIGNED" | "COMPLETED" | "CANCELLED";
+
+export interface TaskItem {
+  externalId: string;
+  title: string;
+  description: string | null;
+  publisherAddr: string;
+  minScore: number;
+  status: TaskStatus;
+  publishTx: string | null;
+  assignTx: string | null;
+  assignedChainAgent: number | null;
+  assignedAgentName: string | null;
+  assignedScore: number | null;
+  createdAt: string;
+  completedAt: string | null;
+  chainRecorded: boolean;
+}
+
+export async function fetchTasks(status?: TaskStatus): Promise<TaskItem[]> {
+  const qs = status ? `?status=${status}` : "";
+  const res = await fetch(`${API_URL}/tasks${qs}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`GET /tasks -> ${res.status}`);
+  return (await res.json()) as TaskItem[];
+}
+
+/** 发布任务（服务端持 publisher 私钥上链登记） */
+export async function publishTask(input: {
+  externalId: string;
+  title: string;
+  description?: string;
+  minScore?: number;
+  publisherPrivateKey: string;
+}): Promise<TaskItem> {
+  const res = await fetch(`${API_URL}/tasks`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /tasks -> ${res.status} ${await res.text()}`);
+  return (await res.json()) as TaskItem;
+}
+
+/** Agent 领取任务（服务端持 agent 私钥 + 校验链上声誉门槛） */
+export async function claimTask(
+  externalId: string,
+  input: { agentPrivateKey: string; chainAgentId: number },
+): Promise<TaskItem> {
+  const res = await fetch(`${API_URL}/tasks/${encodeURIComponent(externalId)}/claim`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`POST /tasks/:id/claim -> ${res.status} ${await res.text()}`);
+  return (await res.json()) as TaskItem;
+}
+
 /** 轻量健康探针（非致命） */
 export async function fetchHealth(): Promise<{ ok: boolean; db: boolean; chain: boolean; ipfs: boolean } | null> {
   try {
