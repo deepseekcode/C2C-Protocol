@@ -1,0 +1,5 @@
+nextjs
+out
+dist
+*.log
+.env*.local

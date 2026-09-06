@@ -1,15 +1,31 @@
 {
-  "name": "avalanche-builder-env",
-  "version": "0.1.0",
+  "name": "c2c-protocol",
+  "version": "0.2.0",
   "private": true,
-  "description": "Avalanche Builder Hub 起步环境：Hardhat + @avalanche-sdk/client 连接 Fuji Testnet",
+  "description": "C2C Protocol (Credit-to-Collaborate)：AI Agent 声誉基础设施，基于 Avalanche Fuji Testnet / 本地 Hardhat 全链路",
   "scripts": {
-    "install:all": "pnpm --dir contracts install && pnpm --dir scripts install",
+    "install:all": "pnpm --dir contracts install && pnpm --dir scripts install && pnpm --dir packages/shared install && pnpm --dir packages/reputation-engine install && pnpm --dir packages/agent-sdk install && pnpm --dir apps/api install && pnpm --dir apps/web install",
+    "build:packages": "pnpm --dir packages/shared build && pnpm --dir packages/reputation-engine build && pnpm --dir packages/agent-sdk build && pnpm --dir apps/api build",
+    "build": "pnpm build:packages",
     "compile": "pnpm --dir contracts compile",
     "test": "pnpm --dir contracts test",
+    "test:engine": "pnpm --dir packages/reputation-engine test",
     "deploy:fuji": "pnpm --dir contracts run deploy:fuji",
+    "deploy:local": "pnpm --dir contracts run deploy:local",
     "sdk:info": "pnpm --dir scripts exec tsx src/info.ts",
-    "sdk:balance": "pnpm --dir scripts exec tsx src/balance.ts"
+    "sdk:balance": "pnpm --dir scripts exec tsx src/balance.ts",
+    "sdk:typecheck": "pnpm --dir packages/agent-sdk run typecheck",
+    "typecheck": "pnpm --dir contracts exec tsc --noEmit && pnpm --dir scripts run typecheck && pnpm --dir packages/shared run typecheck && pnpm --dir packages/reputation-engine run typecheck && pnpm --dir packages/agent-sdk run typecheck && pnpm --dir apps/api run typecheck && pnpm --dir apps/web run typecheck",
+    "db:up": "docker compose up -d --pull never",
+    "db:migrate": "pnpm --dir apps/api run prisma:migrate",
+    "db:studio": "pnpm --dir apps/api exec prisma studio",
+    "api:dev": "pnpm --dir apps/api run dev",
+    "api:start": "pnpm --dir apps/api run start",
+    "api:typecheck": "pnpm --dir apps/api run typecheck",
+    "seed:e2e": "pnpm --dir apps/api run seed:e2e",
+    "api:test:e2e": "pnpm --dir apps/api run test:e2e",
+    "web:dev": "pnpm --dir apps/web run dev",
+    "e2e": "bash apps/api/scripts/run-e2e.sh"
   },
   "engines": {
     "node": ">=20"
